@@ -10,27 +10,95 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include "pipe.h"
+#include "libft/libft.h"
+
 int	main(int ac, char **av)
 {
 	int	counter;
-	int	fd;
+	int	fd[2];
 
 	counter = 1;
-	fd = 0;
+	fd[0] = 0;
+	fd[1] = 0;
 	if (ac > 4)
 	{
-		if (filechecker(av[1]) > 1)
-			fd = open(av[1], O_RONLY, );
-		while (++counter < ac)
-		{
+		fd[0] = openfileRD(av[1]);
+		fd[1] = openfileWR(av[ac - 1]);
+		// while (++counter < ac)
+		// {
 
-		}
-		/*av[1] && av[ac] são paths para os arquivos de entrada e saída;
-		*/
+		// }
+		//av[1] && av[ac] são paths para os arquivos de entrada e saída;
 	}
 }
 
-int	filechecker(char **file)
+// void	childloop(int fd1, int fd2, int ac, char **av)
+// {
+
+// }
+
+int	openfileRD(char *file)
+{
+	int	fd;
+
+	fd = 0;
+	if (filechecker(file) > 1)
+		fd = open(file, O_RDONLY);
+	else
+	{
+		ft_printf("File do not exist.\n");
+		exit (-1);
+	}
+	if (fd > 0)
+		return (fd);
+	else
+		exit (-1);
+}
+
+int	openfileWR(char *file)
+{
+	int	fd;
+
+	if (filechecker(file) > 0)
+	{
+		if (filecheckerWR(file) == 1)
+			fd = open(file, O_WRONLY);
+		else
+		{
+			ft_printf("Permission Denied.\n");
+			exit (-1);
+		}
+	}
+	else
+	{
+		fd = open(file, O_CREAT, 0644);
+		if (fd > 0)
+			return (fd);
+	}
+	exit (-1);
+}
+
+void	closefile(int fd)
+{
+	close(fd);
+}
+
+int	filecheckerWR(char *file)
+{
+	int	f;
+
+	f = 0;
+	if (access(file, W_OK) == 0)
+		f++;
+	return (f);
+}
+
+int	filechecker(char *file)
 {
 	int	f;
 
@@ -44,7 +112,6 @@ int	filechecker(char **file)
 	if (access(file, W_OK) == 0)
 		f++;
 	return (f);
-
 }
 
 /*	numero de argumentos não definido (quantidade de pipes);
@@ -82,3 +149,4 @@ pipe() - This function is used to create a pipe, which is a unidirectional data 
 unlink() - This function is used to remove a file or directory from the file system. It takes a string argument which is the path to the file or directory to be removed. If the function succeeds, it returns 0, otherwise it returns -1.
 
 wait() and waitpid() - These functions are used to wait for a child process to terminate. wait() waits for any child process to terminate, while waitpid() waits for a specific child process to terminate. They both take a pointer to an integer argument, which is used to store the exit status of the child process. They return the process ID of the terminated child process on success, or -1 on error.
+*/
