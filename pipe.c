@@ -14,21 +14,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 #include "pipe.h"
 #include "libft/libft.h"
 
-int	main(int ac, char **av)
+static void	move(char **av)
+{
+		av += 3;
+		printf("%s", *av);
+}
+
+int	main(int ac, char **av, char **envp)
 {
 	int	counter;
-	int	fd[2];
+	int	fd[3];
 
 	counter = 1;
 	fd[0] = 0;
 	fd[1] = 0;
-	if (ac > 4)
+	fd[2] = 0;
+	if (ac > 4 && envp)
 	{
 		fd[0] = openfileRD(av[1]);
 		fd[1] = openfileWR(av[ac - 1]);
+		av[ac - 1] = NULL;
+		move(av);
+		// copyfile();
+		// childloop2();
 		// while (++counter < ac)
 		// {
 
@@ -37,10 +49,101 @@ int	main(int ac, char **av)
 	}
 }
 
-// void	childloop(int fd1, int fd2, int ac, char **av)
-// {
+void	childloop(int *fd, int ac, char **av)
+{
+	int			pipefd[2];
+	pid_t		pid;
+	static int	counter;
 
-// }
+	pid = 0;
+	pipe(pipefd);
+	if (counter++ < (ac - 2))
+		pid = fork();
+	if (pid == 0)
+	{
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[0]);
+		execve("/bin/sh", &av[counter + 2], NULL);
+	}
+	else if (pid > 0 && fd)
+	{
+		close(pipefd[1]);
+		wait(NULL);
+	}
+}
+
+char	*findshellpath(char *envp)
+{
+	int	f;
+	char *path;
+
+	f = 0;
+	while (envp[f])
+	{
+		if (ft_strncmp(&envp[f], "SHELL=", 6))
+			path = &envp[f];
+		else
+			f++;
+	}
+	path = path + 6;
+	return (path);
+}
+
+void	execute_command(int input_fd, char **av, char **envp)
+{
+    int output_fd[2]; // file descriptor for pipe
+    char **argv;
+    pid_t pid;
+    
+	if (pipe(output_fd) == -1) { // create pipe
+        perror("pipe");
+        exit(EXIT_FAILURE);
+    }
+    pid = fork(); // fork child process
+    if (pid == -1) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid == 0) { // child process
+        close(output_fd[0]); // close read end of pipe
+
+        // set up stdout to write to pipe
+        dup2(output_fd[1], STDOUT_FILENO);
+
+        // set up stdin to read from input_fd
+        dup2(input_fd, STDIN_FILENO);
+
+        // execute command
+		argv = ft_split(av + counter, " ");
+        execve(findshellpath(envp), argv, NULL);
+        perror("execve");
+        exit(EXIT_FAILURE);
+    }
+    else { // parent process
+        close(input_fd); // close input file descriptor
+        close(output_fd[1]); // close write end of pipe
+        waitpid(pid, NULL, 0); // wait for child process to finish
+		if (av + counter != NULL)
+        	execute_command(output_fd[0], av, envp); // return read end of pipe as output file descriptor
+    }
+}
+
+void	childloop2()
+{
+    pid_t pid = fork();
+    
+    if (pid == 0) {
+        // Child process
+        printf("Child process with PID %d\n", getpid());
+    } else if (pid > 0) {
+        // Parent process
+        printf("Parent process with PID %d, child PID %d\n", getpid(), pid);
+    } else {
+        // Error
+        printf("Error: failed to fork.\n");
+    }
+}
 
 int	openfileRD(char *file)
 {
@@ -75,11 +178,9 @@ int	openfileWR(char *file)
 		}
 	}
 	else
-	{
 		fd = open(file, O_CREAT, 0644);
-		if (fd > 0)
-			return (fd);
-	}
+	if (fd > 0)
+		return (fd);
 	exit (-1);
 }
 
@@ -113,6 +214,50 @@ int	filechecker(char *file)
 		f++;
 	return (f);
 }
+
+// void	copyfile(int ac, char **av, char **envp)
+// {
+//     int fd[2];
+// 	int	fd2[2];
+// 	static int counter;
+//     pipe(fd); // create a pipe to redirect the output
+
+//     pid_t pid = fork();
+// 	counter += 2;
+//     if (pid == 0) {
+//         // Child process
+//         dup2(fd[1], STDOUT_FILENO); // redirect the output to the write end of the pipe
+//         close(fd[0]); // close the read end of the pipe
+
+//         char *argv[] = {av[counter], NULL}; // command to execute
+//         char *envp[] = {NULL}; // environment variables
+//         int fd_in = open("README.md", O_RDONLY); // open the input file
+// 		pipe(fd2);
+//         // int fd_out = open(".readme", O_WRONLY | O_CREAT, 0644); // open the output file
+//         dup2(fd_in, STDIN_FILENO); // redirect the input from the file
+//         dup2(fd2[0], STDOUT_FILENO); // redirect the output to the file
+//         close(fd_in); // close the input file descriptor
+//         close(fd2[0]); // close the output file descriptor
+
+//         execve("/bin/cat", argv, envp); // execute the command
+//     } else if (pid > 0) {
+//         // Parent process
+//         close(fd[1]); // close the write end of the pipe
+//         wait(NULL); // wait for the child process to complete
+
+//         char buffer[1024];
+//         ssize_t nread = read(fd[0], buffer, sizeof(buffer)); // read the output from the pipe
+//         write(STDOUT_FILENO, buffer, nread); // write the output to the standard output
+// 		counter++;
+// 		if (counter < (ac - 1))
+// 			copyfile(ac, av, envp);
+//         //int fd_out = open(".readme", O_WRONLY | O_CREAT, 0644); // open the output file
+//     } else {
+//         // Error
+//         printf("Error: failed to fork.\n");
+//     }
+//     return ;
+// }
 
 /*	numero de argumentos não definido (quantidade de pipes);
 	primeiro e ultimo argumento precisam ser files/paths;
