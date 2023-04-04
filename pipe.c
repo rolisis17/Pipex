@@ -18,12 +18,6 @@
 #include "pipe.h"
 #include "libft/libft.h"
 
-static void	move(char **av)
-{
-		av += 3;
-		printf("%s", *av);
-}
-
 int	main(int ac, char **av, char **envp)
 {
 	int	counter;
@@ -38,7 +32,7 @@ int	main(int ac, char **av, char **envp)
 		fd[0] = openfileRD(av[1]);
 		fd[1] = openfileWR(av[ac - 1]);
 		av[ac - 1] = NULL;
-		move(av);
+		childloop(fd, ac, av, envp);
 		// copyfile();
 		// childloop2();
 		// while (++counter < ac)
@@ -49,30 +43,41 @@ int	main(int ac, char **av, char **envp)
 	}
 }
 
-void	childloop(int *fd, int ac, char **av)
+void	childloop(int *fd, int ac, char **av, char **envp)
 {
 	int			pipefd[2];
 	pid_t		pid;
-	static int	counter;
 
 	pid = 0;
 	pipe(pipefd);
-	if (counter++ < (ac - 2))
-		pid = fork();
+	pid = fork();
 	if (pid == 0)
 	{
-		dup2(pipefd[1], STDOUT_FILENO);
 		close(pipefd[0]);
-		execve("/bin/sh", &av[counter + 2], NULL);
+		dup2(fd[0], STDIN_FILENO);
+		dup2(pipefd[1], STDOUT_FILENO);
+		ft_putendl_fd(findcommand(*(av + 2), envp), 2);
+		execve(findcommand(*(av + 2), envp), av + 2, NULL);
 	}
-	else if (pid > 0 && fd)
+	else if (pid > 0)
 	{
 		close(pipefd[1]);
-		wait(NULL);
+		waitpid(pid, NULL, 0);
+		loopend(execute_command(pipefd[0], av, envp), fd[1], av[ac - 2], envp);
 	}
 }
 
-char	*findshellpath(char *envp)
+void	loopend(int fdin, int fdout, char *command, char **envp)
+{
+	pid_t		pid;
+
+	pid = 0; 
+	dup2(fdin, STDIN_FILENO);
+	dup2(fdout, STDOUT_FILENO);
+	execve(findcommand(command, envp), &command, NULL);
+}
+
+char	*findshellpath(char **envp)
 {
 	int	f;
 	char *path;
@@ -80,21 +85,60 @@ char	*findshellpath(char *envp)
 	f = 0;
 	while (envp[f])
 	{
-		if (ft_strncmp(&envp[f], "SHELL=", 6))
-			path = &envp[f];
-		else
-			f++;
+		if (!(ft_strncmp(envp[f], "PATH=", 5)))
+			path = envp[f];
+		f++;
 	}
-	path = path + 6;
-	return (path);
+	// path = path + 5;
+	return (path + 5);
 }
 
-void	execute_command(int input_fd, char **av, char **envp)
+char	*findcommand(char *command, char **envp)
 {
-    int output_fd[2]; // file descriptor for pipe
-    char **argv;
-    pid_t pid;
+	char	**splited;
+	char	*joined;
+	char	*res;
+	int		f;
+
+	f = 0;
+	splited = ft_split(findshellpath(envp), ':');
+	command = ft_strjoin("/", command);
+	while (splited[f])
+	{
+		joined = ft_strjoin(splited[f], command);
+		if (filechecker(joined) > 0)
+			res = ft_strjoin(splited[f], NULL);
+		else
+			f++;
+		free (joined);
+	}
+	freesplit(splited);
+	free(command);
+	ft_putendl_fd(res, 2);
+	return (res);
+}
+
+void	freesplit(char **splited)
+{
+	int	counter;
+
+	counter = 0;
+	while (splited[counter])
+	{
+		free(splited[counter]);
+		counter++;
+	}
+	free (splited);
+}
+
+int	execute_command(int input_fd, char **av, char **envp)
+{
+    int			output_fd[2]; // file descriptor for pipe
+    char		**argv;
+    pid_t		pid;
+	static int	counter;
     
+	counter = 3;
 	if (pipe(output_fd) == -1) { // create pipe
         perror("pipe");
         exit(EXIT_FAILURE);
@@ -104,7 +148,6 @@ void	execute_command(int input_fd, char **av, char **envp)
         perror("fork");
         exit(EXIT_FAILURE);
     }
-
     if (pid == 0) { // child process
         close(output_fd[0]); // close read end of pipe
 
@@ -115,8 +158,8 @@ void	execute_command(int input_fd, char **av, char **envp)
         dup2(input_fd, STDIN_FILENO);
 
         // execute command
-		argv = ft_split(av + counter, " ");
-        execve(findshellpath(envp), argv, NULL);
+		argv = ft_split(*(av + counter), ' ');
+        execve(findcommand(*argv, envp), argv, NULL);
         perror("execve");
         exit(EXIT_FAILURE);
     }
@@ -124,9 +167,10 @@ void	execute_command(int input_fd, char **av, char **envp)
         close(input_fd); // close input file descriptor
         close(output_fd[1]); // close write end of pipe
         waitpid(pid, NULL, 0); // wait for child process to finish
-		if (av + counter != NULL)
+		if (av + ++counter + 1 != NULL)
         	execute_command(output_fd[0], av, envp); // return read end of pipe as output file descriptor
     }
+	return (output_fd[0]);
 }
 
 void	childloop2()

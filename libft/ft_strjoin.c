@@ -6,7 +6,7 @@
 /*   By: dcella-d <dcella-d@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/14 17:34:00 by dcella-d          #+#    #+#             */
-/*   Updated: 2022/11/17 13:51:11 by dcella-d         ###   ########.fr       */
+/*   Updated: 2023/04/04 21:14:36 by dcella-d         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,9 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	s3 = (char *)ft_calloc(f, sizeof(char));
 	if (!s3)
 		return (NULL);
-	ft_strlcpy(s3, (char *)s1, ft_strlen(s1) + 1);
-	ft_strlcat(s3, (char *)s2, f);
+	if (*s1)
+		ft_strlcpy(s3, (char *)s1, ft_strlen(s1) + 1);
+	if (*s2)
+		ft_strlcat(s3, (char *)s2, f);
 	return (s3);
 }
