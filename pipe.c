@@ -20,10 +20,8 @@
 
 int	main(int ac, char **av, char **envp)
 {
-	int	counter;
 	int	fd[3];
 
-	counter = 1;
 	fd[0] = 0;
 	fd[1] = 0;
 	fd[2] = 0;
@@ -32,7 +30,9 @@ int	main(int ac, char **av, char **envp)
 		fd[0] = openfileRD(av[1]);
 		fd[1] = openfileWR(av[ac - 1]);
 		av[ac - 1] = NULL;
-		childloop(fd, ac, av, envp);
+		char *argv[] = {"ls", NULL};
+		execve("/usr/bin/ls", argv, envp);
+		// childloop(fd, ac, av, envp);
 		// copyfile();
 		// childloop2();
 		// while (++counter < ac)
@@ -56,25 +56,26 @@ void	childloop(int *fd, int ac, char **av, char **envp)
 		close(pipefd[0]);
 		dup2(fd[0], STDIN_FILENO);
 		dup2(pipefd[1], STDOUT_FILENO);
-		ft_putendl_fd(findcommand(*(av + 2), envp), 2);
-		execve(findcommand(*(av + 2), envp), av + 2, NULL);
+		execve(findcommand(av[2], envp), av, envp);
+		perror("execve");
+		exit(EXIT_FAILURE);
+		// ft_putendl_fd(findcommand(av[2], envp), 2);
 	}
 	else if (pid > 0)
 	{
 		close(pipefd[1]);
 		waitpid(pid, NULL, 0);
-		loopend(execute_command(pipefd[0], av, envp), fd[1], av[ac - 2], envp);
+		loopend(execute_command(pipefd[0], av, envp, 3), fd[1], av[ac - 2], envp);
 	}
 }
 
 void	loopend(int fdin, int fdout, char *command, char **envp)
 {
-	pid_t		pid;
-
-	pid = 0; 
 	dup2(fdin, STDIN_FILENO);
 	dup2(fdout, STDOUT_FILENO);
-	execve(findcommand(command, envp), &command, NULL);
+	execve(findcommand(command, envp), &command, envp);
+	perror("execve");
+	exit(EXIT_FAILURE);
 }
 
 char	*findshellpath(char **envp)
@@ -85,11 +86,11 @@ char	*findshellpath(char **envp)
 	f = 0;
 	while (envp[f])
 	{
-		if (!(ft_strncmp(envp[f], "PATH=", 5)))
+		if (!(ft_strncmp(envp[f], "PATH", 4)))
 			path = envp[f];
 		f++;
 	}
-	// path = path + 5;
+	// ft_putendl_fd(path, 2);
 	return (path + 5);
 }
 
@@ -97,25 +98,52 @@ char	*findcommand(char *command, char **envp)
 {
 	char	**splited;
 	char	*joined;
-	char	*res;
 	int		f;
 
 	f = 0;
 	splited = ft_split(findshellpath(envp), ':');
-	command = ft_strjoin("/", command);
+	command = ft_strjoin_pipex("/", command, 0);
 	while (splited[f])
 	{
-		joined = ft_strjoin(splited[f], command);
+		joined = ft_strjoin_pipex(splited[f], command, 0);
 		if (filechecker(joined) > 0)
-			res = ft_strjoin(splited[f], NULL);
-		else
-			f++;
+			break;
+		f++;
+		// ft_putendl_fd(splited[f], 2);
 		free (joined);
 	}
+	f = filechecker(joined);
+	// printf ("%d", f);
 	freesplit(splited);
 	free(command);
-	ft_putendl_fd(res, 2);
-	return (res);
+	ft_putendl_fd(joined, 2);
+	return (joined);
+}
+
+char	*ft_strjoin_pipex(char *s1, char *s2, int f)
+{
+	int		u;
+	int		c;
+	char	*s3;
+
+	u = ft_strlen_gnl(s1) + ft_strlen_gnl(s2);
+	if (f == -1)
+		u -= ft_strlen_gnl(s1);
+	s3 = (char *)ft_calloc_gnl(u + 1, sizeof(char));
+	if (!s3)
+		return (NULL);
+	c = -1;
+	if (s1 && f != -1)
+		while (s1[++c] && (c < u))
+			s3[c] = s1[c];
+	else
+		c = 0;
+	u = -1;
+	while (s2[++u])
+		s3[c + u] = s2[u];
+	if (f == -2)
+		free (s1);
+	return (s3);
 }
 
 void	freesplit(char **splited)
@@ -131,46 +159,48 @@ void	freesplit(char **splited)
 	free (splited);
 }
 
-int	execute_command(int input_fd, char **av, char **envp)
+int	execute_command(int input_fd, char **av, char **envp, int counter)
 {
     int			output_fd[2]; // file descriptor for pipe
     char		**argv;
     pid_t		pid;
-	static int	counter;
     
-	counter = 3;
-	if (pipe(output_fd) == -1) { // create pipe
-        perror("pipe");
-        exit(EXIT_FAILURE);
-    }
-    pid = fork(); // fork child process
-    if (pid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    if (pid == 0) { // child process
-        close(output_fd[0]); // close read end of pipe
+	ft_putendl_fd("loop", 2);
+	if ((av[(counter + 2)]) != NULL)
+	{
+		if (pipe(output_fd) == -1) { // create pipe
+			perror("pipe");
+			exit(EXIT_FAILURE);
+		}
+		pid = fork(); // fork child process
+		if (pid == -1) {
+			perror("fork");
+			exit(EXIT_FAILURE);
+		}
+		if (pid == 0) { // child process
+			close(output_fd[0]); // close read end of pipe
 
-        // set up stdout to write to pipe
-        dup2(output_fd[1], STDOUT_FILENO);
+			// set up stdout to write to pipe
+			dup2(output_fd[1], STDOUT_FILENO);
 
-        // set up stdin to read from input_fd
-        dup2(input_fd, STDIN_FILENO);
+			// set up stdin to read from input_fd
+			dup2(input_fd, STDIN_FILENO);
 
-        // execute command
-		argv = ft_split(*(av + counter), ' ');
-        execve(findcommand(*argv, envp), argv, NULL);
-        perror("execve");
-        exit(EXIT_FAILURE);
-    }
-    else { // parent process
-        close(input_fd); // close input file descriptor
-        close(output_fd[1]); // close write end of pipe
-        waitpid(pid, NULL, 0); // wait for child process to finish
-		if (av + ++counter + 1 != NULL)
-        	execute_command(output_fd[0], av, envp); // return read end of pipe as output file descriptor
-    }
-	return (output_fd[0]);
+			// execute command
+			argv = ft_split(av[counter], ' ');
+			execve(findcommand(argv[0], envp), argv, envp);
+			perror("execve");
+			exit(EXIT_FAILURE);
+		}
+		else { // parent process
+			close(input_fd); // close input file descriptor
+			close(output_fd[1]); // close write end of pipe
+			waitpid(pid, NULL, 0); // wait for child process to finish
+			// ft_printf("%d", counter);
+			execute_command(output_fd[0], av, envp, counter + 1); // return read end of pipe as output file descriptor
+		}
+	}
+	return (input_fd);
 }
 
 void	childloop2()
@@ -255,7 +285,7 @@ int	filechecker(char *file)
 	if (access(file, R_OK) == 0)
 		f++;
 	if (access(file, W_OK) == 0)
-		f++;
+		f += 2;
 	return (f);
 }
 

@@ -6,14 +6,14 @@ CFLAGS = -g -Wall -Wextra -Werror -fsanitize=address
 RM = rm -rf
 CC = cc
 
-$(NAME): $(LIBFT)
+$(NAME):
 	@$(CC) $(CFLAGS) $(SRCS) -Llibft -lft -o $(NAME)
 	@echo "DONE!"
 
-$(LIBFT):
-	@make $(LIBFT)
-	@make bonus $(LIBFT)
-	@make clean $(LIBFT)
+#$(LIBFT):
+#	@make $(LIBFT)
+#	@make bonus $(LIBFT)
+#	@make clean $(LIBFT)
 
 all: $(NAME)
 

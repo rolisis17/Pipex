@@ -19,12 +19,14 @@ void	copyfile(int ac, char **av, char **envp);
 
 char	*findshellpath(char **envp);
 
-int		execute_command(int input_fd, char **av, char **envp);
+int		execute_command(int input_fd, char **av, char **envp, int counter);
 
 void	loopend(int fdin, int fdout, char *command, char **envp);
 
 char	*findcommand(char *command, char **envp);
 
 void	freesplit(char **splited);
+
+char	*ft_strjoin_pipex(char *s1, char *s2, int f);
 
 #endif
