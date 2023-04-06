@@ -6,7 +6,7 @@
 /*   By: dcella-d <dcella-d@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/09 12:14:30 by dcella-d          #+#    #+#             */
-/*   Updated: 2023/03/27 13:33:01 by dcella-d         ###   ########.fr       */
+/*   Updated: 2023/04/06 19:52:56 by dcella-d         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # endif
 
 # include <stdio.h>
+# include <stdarg.h>
 # include <unistd.h>
 # include <stdlib.h>
 
@@ -73,7 +74,7 @@ char	*ft_strdup(const char *s);
 
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 
-char	*ft_strjoin(char const *s1, char const *s2);
+char	*ft_strjoin(char *s1, char *s2, int f);
 
 char	*ft_strtrim(char const *s1, char const *set);
 
@@ -138,24 +139,22 @@ char	*makeline(char *keep, int posnextline);
 
 //				PRINTF
 
-# include <stdarg.h>
+int		ft_printf(const char *str, ...);
 
-int	ft_printf(const char *str, ...);
+int		ft_count(const char *str, va_list args);
 
-int	ft_count(const char *str, va_list args);
+int		ft_flags(char uck, va_list args);
 
-int	ft_flags(char uck, va_list args);
+int		ft_putchar(char c);
 
-int	ft_putchar(char c);
+int		ft_putstr(char *s);
 
-int	ft_putstr(char *s);
+int		ft_putnbr(int nbr);
 
-int	ft_putnbr(int nbr);
+int		ft_putunsigned(unsigned int nbr);
 
-int	ft_putunsigned(unsigned int nbr);
+int		ft_puthexa(unsigned int nbr, char *base);
 
-int	ft_puthexa(unsigned int nbr, char *base);
-
-int	ft_putaddress(unsigned long int nbr, char *base, int safe);
+int		ft_putaddress(unsigned long int nbr, char *base, int safe);
 
 #endif

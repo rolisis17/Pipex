@@ -6,24 +6,34 @@
 /*   By: dcella-d <dcella-d@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/14 17:34:00 by dcella-d          #+#    #+#             */
-/*   Updated: 2023/04/04 21:14:36 by dcella-d         ###   ########.fr       */
+/*   Updated: 2023/04/06 19:50:19 by dcella-d         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-char	*ft_strjoin(char const *s1, char const *s2)
+char	*ft_strjoin(char *s1, char *s2, int f)
 {
-	size_t	f;
+	int		u;
+	int		c;
 	char	*s3;
 
-	f = ft_strlen(s1) + ft_strlen(s2) + 1;
-	s3 = (char *)ft_calloc(f, sizeof(char));
+	u = ft_strlen_gnl(s1) + ft_strlen_gnl(s2);
+	if (f == -1)
+		u -= ft_strlen_gnl(s1);
+	s3 = (char *)ft_calloc_gnl(u + 1, sizeof(char));
 	if (!s3)
 		return (NULL);
-	if (*s1)
-		ft_strlcpy(s3, (char *)s1, ft_strlen(s1) + 1);
-	if (*s2)
-		ft_strlcat(s3, (char *)s2, f);
+	c = -1;
+	if (s1 && f != -1)
+		while (s1[++c] && (c < u))
+			s3[c] = s1[c];
+	else
+		c = 0;
+	u = -1;
+	while (s2[++u])
+		s3[c + u] = s2[u];
+	if (f == -2)
+		free (s1);
 	return (s3);
 }

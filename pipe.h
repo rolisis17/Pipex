@@ -1,21 +1,25 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipe.h                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dcella-d <dcella-d@student.42lisboa.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/03/22 16:46:01 by dcella-d          #+#    #+#             */
+/*   Updated: 2023/04/06 17:46:01 by dcella-d         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PIPE_H
 # define PIPE_H
 
-#include "libft/libft.h"
+# include "libft/libft.h"
+# include <fcntl.h>
+# include <sys/wait.h>
 
-int	filechecker(char *file);
-
-int	filecheckerWR(char *file);
-
-int	openfileRD(char *file);
-
-int	openfileWR(char *file);
+void	error_func(char *msg);
 
 void	childloop(int *fd, int ac, char **av, char **envp);
-
-void	childloop2();
-
-void	copyfile(int ac, char **av, char **envp);
 
 char	*findshellpath(char **envp);
 
@@ -27,6 +31,8 @@ char	*findcommand(char *command, char **envp);
 
 void	freesplit(char **splited);
 
-char	*ft_strjoin_pipex(char *s1, char *s2, int f);
+void	execve_func(char *cmd, char **envp);
+
+void	here_doc(char **av);
 
 #endif
