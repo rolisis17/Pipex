@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strjoin.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dcella-d <dcella-d@student.42lisboa.com    +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/14 17:34:00 by dcella-d          #+#    #+#             */
-/*   Updated: 2023/04/06 19:50:19 by dcella-d         ###   ########.fr       */
+/*   Updated: 2023/04/10 20:56:42 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ char	*ft_strjoin(char *s1, char *s2, int f)
 	while (s2[++u])
 		s3[c + u] = s2[u];
 	if (f == -2)
-		free (s1);
+		if (s1)
+			free (s1);
 	return (s3);
 }

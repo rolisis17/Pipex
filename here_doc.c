@@ -3,21 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   here_doc.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dcella-d <dcella-d@student.42lisboa.com    +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/06 20:13:29 by dcella-d          #+#    #+#             */
-/*   Updated: 2023/04/06 21:10:15 by dcella-d         ###   ########.fr       */
+/*   Updated: 2023/04/10 21:28:30 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipe.h"
 
-int	here_doc(char **av)
+void	here_doc(int fdout, char **av, char **envp)
 {
-	int		*fd;
+	int		fd[2];
 	pid_t	pid;
-	char	*str;
+	int		counter;
 
+	counter = 2;
 	if (pipe(fd) == -1)
 		error_func("pipe");
 	pid = fork();
@@ -27,17 +28,37 @@ int	here_doc(char **av)
 	{
 		close(fd[0]);
 		dup2(fd[1], STDOUT_FILENO);
-		while(1)
-		{
-			ft_printf("%s", get_next_line(STDIN_FILENO));
-			if (ft_strncmp(str, av[2], ft_strlen(av[2]) == 0))
-				break ;
-		}
+		here_child(av[2]);
 	}
 	else if (pid > 0)
 	{
 		close(fd[1]);
 		waitpid(pid, NULL, 0);
-		return fd[0];
+		while (av[++counter + 2] != NULL)
+			fd[0] = execute_command(fd[0], av, envp, counter);
+		loopend(fd[0], fdout, av[counter], envp);
 	}
+	exit (0);
+}
+
+void	here_child(char *av2)
+{
+	char	*str;
+	char	*limiter;
+	char	*fileadd;
+
+	fileadd = NULL;
+	limiter = ft_strjoin(av2, "\n", 0);
+	while(1)
+	{
+		ft_putstr_fd("Pipex here_doc ", 2);
+		str = get_next_line(STDIN_FILENO);
+		if (ft_strncmp(str, limiter, ft_strlen(limiter)) == 0)
+			break ;
+		fileadd = ft_strjoin(fileadd, str, -2);
+		if (str)
+			free (str);
+	}
+	ft_printf("%s", fileadd);
+	exit (0);
 }

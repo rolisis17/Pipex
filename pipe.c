@@ -18,13 +18,12 @@ int	main(int ac, char **av, char **envp)
 
 	fd[0] = 0;
 	fd[1] = 0;
-	if (ac > 4 && envp)
+	if (ac > 4)
 	{
 		fd[1] = open(av[ac - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (ft_strncmp(av[1], "here_doc", 8) == 0)
-			fd[0] = here_doc(av);
-		else
-			fd[0] = open(av[1], O_RDONLY);
+			here_doc(fd[1], av, envp);
+		fd[0] = open(av[1], O_RDONLY);
 		if (fd[0] < 0 || fd[1] < 0)
 			error_func("file");
 		// av[ac - 1] = NULL;
