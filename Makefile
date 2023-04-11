@@ -25,6 +25,6 @@ clean:
 
 fclean:
 	@$(RM) $(NAME)
-	@echo "if (pipex)\n	rm -rf pipex;\n else\n	printf('Nothing to clean.');"
+	@echo "if (pipex)\n	rm -rf pipex;\nelse\n	printf('Nothing to clean.');"
 
 re: fclean all

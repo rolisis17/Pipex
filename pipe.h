@@ -35,7 +35,7 @@ void	execve_func(char *cmd, char **envp);
 
 void	here_doc(int fdout, int ac, char **av, char **envp);
 
-void	here_child(char *limiter);
+void	here_child(int *fd, char *av2);
 
 void	error_func2(char *msg);
 

@@ -6,7 +6,7 @@
 /*   By: dcella-d <dcella-d@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/06 20:13:29 by dcella-d          #+#    #+#             */
-/*   Updated: 2023/04/11 13:11:19 by dcella-d         ###   ########.fr       */
+/*   Updated: 2023/04/11 16:36:36 by dcella-d         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,11 +27,7 @@ void	here_doc(int fdout, int ac, char **av, char **envp)
 	if (pid == -1)
 		error_func("fork");
 	if (pid == 0)
-	{
-		close(fd[0]);
-		dup2(fd[1], STDOUT_FILENO);
-		here_child(av[2]);
-	}
+		here_child(fd, av[2]);
 	else if (pid > 0)
 	{
 		close(fd[1]);
@@ -40,7 +36,6 @@ void	here_doc(int fdout, int ac, char **av, char **envp)
 			fd[0] = execute_command(fd[0], av, envp, counter);
 		loopend(fd[0], fdout, av[counter], envp);
 	}
-	exit (0);
 }
 
 void	error_func2(char *msg)
@@ -49,7 +44,7 @@ void	error_func2(char *msg)
 	exit(-1);
 }
 
-void	here_child(char *av2)
+void	here_child(int *fd, char *av2)
 {
 	char	*str;
 	char	*limiter;
@@ -57,6 +52,8 @@ void	here_child(char *av2)
 
 	fileadd = NULL;
 	limiter = ft_strjoin(av2, "\n", 0);
+	close(fd[0]);
+	dup2(fd[1], STDOUT_FILENO);
 	while (1)
 	{
 		ft_putstr_fd("Pipex here_doc ", 2);
