@@ -33,8 +33,10 @@ void	freesplit(char **splited);
 
 void	execve_func(char *cmd, char **envp);
 
-void	here_doc(int fdout, char **av, char **envp);
+void	here_doc(int fdout, int ac, char **av, char **envp);
 
 void	here_child(char *limiter);
+
+void	error_func2(char *msg);
 
 #endif

@@ -10,10 +10,10 @@ $(NAME):
 	@$(CC) $(CFLAGS) $(SRCS) -Llibft -lft -o $(NAME)
 	@echo "DONE!"
 
-#$(LIBFT):
-#	@make $(LIBFT)
-#	@make bonus $(LIBFT)
-#	@make clean $(LIBFT)
+$(LIBFT):
+	@make $(LIBFT)
+	@make bonus $(LIBFT)
+	@make clean $(LIBFT)
 
 all: $(NAME)
 
@@ -21,8 +21,10 @@ target:
 	$(MAKE) -C target
 
 clean:
+	@echo "	Nothing to clean;"
 
 fclean:
-	$(RM) $(NAME)
+	@$(RM) $(NAME)
+	@echo "if (pipex)\n	rm -rf pipex;\n else\n	printf('Nothing to clean.');"
 
 re: fclean all
