@@ -6,7 +6,7 @@ CFLAGS = -g -Wall -Wextra -Werror -fsanitize=address
 RM = rm -rf
 CC = cc
 
-$(NAME):
+$(NAME):$(LIBFT)
 	@$(CC) $(CFLAGS) $(SRCS) -Llibft -lft -o $(NAME)
 	@echo "DONE!"
 
@@ -25,6 +25,7 @@ clean:
 
 fclean:
 	@$(RM) $(NAME)
+	@make fclean $(LIBFT)
 	@echo "if (pipex)\n	rm -rf pipex;\nelse\n	printf('Nothing to clean.');"
 
 re: fclean all
