@@ -6,7 +6,7 @@
 /*   By: dcella-d <dcella-d@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/06 20:13:29 by dcella-d          #+#    #+#             */
-/*   Updated: 2023/04/11 16:36:36 by dcella-d         ###   ########.fr       */
+/*   Updated: 2023/04/30 20:26:37 by dcella-d         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	here_child(int *fd, char *av2)
 	dup2(fd[1], STDOUT_FILENO);
 	while (1)
 	{
-		ft_putstr_fd("Pipex here_doc ", 2);
+		ft_putstr_fd("here_doc > ", 2);
 		str = get_next_line(STDIN_FILENO);
 		if (ft_strncmp(str, limiter, ft_strlen(limiter)) == 0)
 			break ;

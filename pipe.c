@@ -21,17 +21,18 @@ int	main(int ac, char **av, char **envp)
 	if (ac > 4)
 	{
 		fd[1] = open(av[ac - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		if (ft_strncmp(av[1], "here_doc", 8) == 0)
+		if (ft_strncmp(av[1], "here_doc", 9) == 0)
 			here_doc(fd[1], ac, av, envp);
 		fd[0] = open(av[1], O_RDONLY);
 		if (fd[0] < 0 || fd[1] < 0)
 			error_func("file");
 		childloop(fd, ac, av, envp);
 	}
-	if (ft_strncmp(av[1], "here_doc", 8) == 0)
-		error_func("try using: here_doc LIMITER cmd1 cmd2 outfile");
+	if (ft_strncmp(av[1], "here_doc", 9) == 0)
+		ft_putendl_fd("try using: here_doc LIMITER cmd1 cmd2 outfile", 2);
 	else
-		error_func("try using: infile cmd1 cmd2 outfile");
+		ft_putendl_fd("try using: infile cmd1 cmd2 outfile", 2);
+	return (-1);
 }
 
 void	childloop(int *fd, int ac, char **av, char **envp)
